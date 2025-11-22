@@ -132,6 +132,7 @@ class Mbart_Based_MLM(nn.Module):
             self.tok_id_to_emb_id[tok_id] = idx
             idx += 1
         self.emb_id_to_tok_id = {v:k for k,v in self.tok_id_to_emb_id.items()}
+        self.eos_idx = self.tok_id_to_emb_id[self.tokenizer.convert_tokens_to_ids('</s>')]
 
         # restrict output vocab
         tokenizer_with_prefix_space = MBartTokenizer.from_pretrained(model_path, add_prefix_space=True, legacy=True)
@@ -168,7 +169,8 @@ class Mbart_Based_MLM(nn.Module):
                                             len_token=len(self.tok_id_to_emb_id),
                                             ids_remove_motion=ids_remove_motion,
                                             ids_remove_hand=ids_remove_hand,
-                                            ids_remove_rhand=ids_remove_rhand
+                                            ids_remove_rhand=ids_remove_rhand,
+                                            eos_idx=self.eos_idx
                                         )
         self.lm_type = 'encdec'
         # elif model_type == "gpt2":
@@ -220,7 +222,16 @@ class Mbart_Based_MLM(nn.Module):
             kws = self.name2kws[n][:self.num_kws_per_sen]
             for i in range(len(kws)):
                 kw = kws[i]
-                cur_string += f" [{kw}]: "
+                # cur_string += f" [{kw}]: "
+
+                if sr in ['how2sign', 'openasl']:
+                    cur_string += f" Key word {i+1}, "
+                elif sr == 'csl':
+                    cur_string += f" 关键词 {i+1}, "
+                elif sr == 'phoenix':
+                    cur_string += f" Schlüsselwort {i+1}, "
+                else:
+                    raise NotImplementedError
                 
                 mo_tokens = self.word2code[kw]['body']
                 hand_tokens = self.word2code[kw]['lhand']

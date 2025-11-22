@@ -83,4 +83,4 @@ LOGGER:
   VAL_EVERY_STEPS: 5
   WANDB:
     params:
-      project: SignGPT
+      project: SLG
